@@ -329,37 +329,31 @@
             connections: []
         };
 
-        // Biến Firebase
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        // Cấu hình Firebase (project: huong-son-map).
+        // Lưu ý: apiKey web KHÔNG phải bí mật — bảo mật thật nằm ở Firestore Security Rules.
+        const firebaseConfig = {
+            apiKey: "AIzaSyArAgTC3_QbbgferGBgObMhGZQN2jNf-vM",
+            authDomain: "huong-son-map.firebaseapp.com",
+            projectId: "huong-son-map",
+            storageBucket: "huong-son-map.firebasestorage.app",
+            messagingSenderId: "1012556021160",
+            appId: "1:1012556021160:web:7c514bee52f7f130ddf19d"
+        };
         let db = null, auth = null, currentUser = null;
-        let appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        if (firebaseConfig) {
-            const appFirebase = initializeApp(firebaseConfig);
-            auth = getAuth(appFirebase);
-            db = getFirestore(appFirebase);
-            
-            const initAuth = async () => {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (e) {
-                    console.error("Auth error:", e);
-                }
-            };
+        const appFirebase = initializeApp(firebaseConfig);
+        auth = getAuth(appFirebase);
+        db = getFirestore(appFirebase);
 
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    loadMapData();
-                }
-            });
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                loadMapData();
+            }
+        });
 
-            initAuth();
-        }
+        // Đăng nhập ẩn danh để thoả Security Rules (request.auth != null)
+        signInAnonymously(auth).catch((e) => console.error("Auth error:", e));
 
         async function saveMapData() {
             if (!currentUser || !db) {
@@ -369,7 +363,7 @@
             const btn = document.getElementById('btn-save');
             btn.innerHTML = "⏳ Đang lưu...";
             try {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'map_data', 'current');
+                const docRef = doc(db, 'maps', 'huong-son');
                 await setDoc(docRef, customState);
                 btn.innerHTML = "✅ Đã lưu thành công";
                 showInstruction("Tiến trình vẽ đã được lưu lên đám mây thành công!", true);
@@ -384,7 +378,7 @@
         async function loadMapData() {
             if (!currentUser || !db) return;
             try {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'map_data', 'current');
+                const docRef = doc(db, 'maps', 'huong-son');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
