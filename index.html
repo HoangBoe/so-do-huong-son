@@ -115,6 +115,119 @@
         .color-benxe { background-color: #cb8427; } /* Cam */
         .color-chotxe { background-color: #2b82cb; } /* Xanh dương */
 
+        /* Công cụ vẽ thêm */
+        .editor-toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #e5e7eb;
+            backdrop-filter: blur(5px);
+            min-width: 180px;
+        }
+        .toolbar-group-title {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .toolbar-divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 4px 0;
+        }
+        .editor-toolbar button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .editor-toolbar button:hover { background: #f3f4f6; }
+        .editor-toolbar button.active { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+        #btn-view { background: #fee2e2; border-color: #f87171; color: #b91c1c; justify-content: center; display: none; }
+        #btn-view:hover { background: #fecaca; }
+        .action-instruction {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: #2563eb;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+            pointer-events: none;
+        }
+
+        /* Modal chọn loại kết nối */
+        .custom-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .custom-modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 320px;
+            text-align: center;
+        }
+        .custom-modal-content h3 {
+            margin-top: 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .custom-modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+        }
+        .custom-modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .custom-modal-buttons button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-ok { background: #3b82f6; color: white; }
+        .btn-ok:hover { background: #2563eb; }
+        .btn-cancel { background: #e5e7eb; color: #374151; }
+        .btn-cancel:hover { background: #d1d5db; }
+
     </style>
 </head>
 <body>
@@ -124,6 +237,44 @@
         <div class="status-msg" id="status-msg">Đang tải dữ liệu...</div>
     </div>
     
+    <div id="action-instruction" class="action-instruction"></div>
+
+    <!-- Modal chọn loại kết nối -->
+    <div id="connection-modal" class="custom-modal">
+        <div class="custom-modal-content">
+            <h3>Chọn loại đường dây nối</h3>
+            <select id="conn-type-select">
+                <option value="Cáp quang">Cáp quang</option>
+                <option value="Dây mạng (LAN)">Dây mạng (LAN)</option>
+                <option value="Dây điện">Dây điện</option>
+                <option value="Khác">Khác...</option>
+            </select>
+            <div class="custom-modal-buttons">
+                <button class="btn-cancel" onclick="cancelConnection()">Hủy</button>
+                <button class="btn-ok" onclick="confirmConnection()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-toolbar">
+        <div class="toolbar-group-title">Điều chỉnh bản đồ</div>
+        <button id="btn-toggle-zoom" onclick="toggleMaxZoom()">🔍 Mở khóa Zoom sâu</button>
+        <button id="btn-reset-view" onclick="resetView()">🏠 Về vị trí trung tâm</button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <div class="toolbar-group-title">Công cụ vẽ thêm</div>
+        <button id="btn-add_net" onclick="setMode('add_net')">🗄️ Đặt Tủ Mạng</button>
+        <button id="btn-add_elec" onclick="setMode('add_elec')">⚡ Đặt Tủ Điện</button>
+        <button id="btn-connect" onclick="setMode('connect')">🔗 Nối Dây (Mạng/Điện)</button>
+        <button id="btn-delete" onclick="setMode('delete')">🗑️ Xóa Tủ / Dây</button>
+        <button id="btn-view" onclick="setMode('view')">❌ Hủy / Hoàn tất</button>
+        
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group-title">Lưu Trữ</div>
+        <button id="btn-save" onclick="saveMapData()" style="background: #10b981; color: white; border-color: #059669; justify-content: center;">💾 Lưu sơ đồ (Đám mây)</button>
+    </div>
+
     <!-- Bảng chú thích -->
     <div class="legend" id="map-legend">
         <div class="legend-title">Phân loại điểm</div>
@@ -147,7 +298,11 @@
 
     <div id="map"></div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // Bản đồ được căn giữa mặc định
         const defaultLat = 20.6080; 
         const defaultLng = 105.7774;
@@ -160,21 +315,368 @@
         // Thêm nút zoom
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // Thêm lớp bản đồ từ OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            maxZoom: 22,
+            maxNativeZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // === DỮ LIỆU ĐÃ PARSE TỪ GOOGLE SHEETS (CẬP NHẬT MỚI NHẤT) ===
+        map.setMaxZoom(19);
+
+        // Trạng thái lưu trữ của bản đồ
+        let customState = {
+            cabinets: [],
+            connections: []
+        };
+
+        // Biến Firebase
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        let db = null, auth = null, currentUser = null;
+        let appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        if (firebaseConfig) {
+            const appFirebase = initializeApp(firebaseConfig);
+            auth = getAuth(appFirebase);
+            db = getFirestore(appFirebase);
+            
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (e) {
+                    console.error("Auth error:", e);
+                }
+            };
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    loadMapData();
+                }
+            });
+
+            initAuth();
+        }
+
+        async function saveMapData() {
+            if (!currentUser || !db) {
+                showInstruction("Hệ thống lưu trữ chưa sẵn sàng. Vui lòng đợi chút rồi thử lại.", true);
+                return;
+            }
+            const btn = document.getElementById('btn-save');
+            btn.innerHTML = "⏳ Đang lưu...";
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'map_data', 'current');
+                await setDoc(docRef, customState);
+                btn.innerHTML = "✅ Đã lưu thành công";
+                showInstruction("Tiến trình vẽ đã được lưu lên đám mây thành công!", true);
+                setTimeout(() => { btn.innerHTML = "💾 Lưu sơ đồ (Đám mây)"; }, 2500);
+            } catch (error) {
+                console.error("Lỗi lưu dữ liệu:", error);
+                btn.innerHTML = "❌ Lỗi lưu";
+            }
+        }
+        window.saveMapData = saveMapData;
+
+        async function loadMapData() {
+            if (!currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'map_data', 'current');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.cabinets && Array.isArray(data.cabinets)) {
+                        customState.cabinets = data.cabinets;
+                        data.cabinets.forEach(cab => {
+                            placeCabinet(L.latLng(cab.lat, cab.lng), cab.name, cab.isNet, false, cab);
+                        });
+                    }
+                    if (data.connections && Array.isArray(data.connections)) {
+                        customState.connections = data.connections;
+                        data.connections.forEach(conn => {
+                            drawConnectionLine(L.latLng(conn.p1Lat, conn.p1Lng), L.latLng(conn.p2Lat, conn.p2Lng), conn.connType, false, conn);
+                        });
+                    }
+                    showInstruction("Đã khôi phục dữ liệu vẽ trước đó!", true);
+                }
+            } catch (error) {
+                console.error("Lỗi tải dữ liệu:", error);
+            }
+        }
+
+        // === LOGIC CÔNG CỤ BẢN ĐỒ ===
+        let isZoomUnlocked = false;
+
+        function toggleMaxZoom() {
+            isZoomUnlocked = !isZoomUnlocked;
+            const btn = document.getElementById('btn-toggle-zoom');
+            
+            if (isZoomUnlocked) {
+                map.setMaxZoom(22);
+                btn.innerHTML = '🔒 Khóa Zoom (Chuẩn)';
+                btn.classList.add('active');
+                showInstruction("Đã mở khóa! Bạn có thể lăn chuột để zoom sát hơn nữa.");
+            } else {
+                map.setMaxZoom(19);
+                btn.innerHTML = '🔍 Mở khóa Zoom sâu';
+                btn.classList.remove('active');
+                showInstruction("Đã khôi phục giới hạn zoom chuẩn.");
+            }
+        }
+        window.toggleMaxZoom = toggleMaxZoom;
+
+        function resetView() {
+            if (latlngs.length > 0) {
+                const bounds = L.latLngBounds(latlngs);
+                map.fitBounds(bounds, { padding: [60, 60] });
+            } else {
+                map.setView([defaultLat, defaultLng], 15);
+            }
+        }
+        window.resetView = resetView;
+
+        function showInstruction(text, autoHide = true) {
+            const el = document.getElementById('action-instruction');
+            el.innerText = text;
+            el.style.display = 'block';
+            if (autoHide) {
+                setTimeout(() => {
+                    if (appMode === 'view' && document.getElementById('action-instruction').innerText === text) {
+                        el.style.display = 'none';
+                    }
+                }, 3000);
+            }
+        }
+
+        // === LOGIC CÔNG CỤ CHỈNH SỬA VẼ ===
+        let appMode = 'view'; 
+        let selectedMarkerForConnection = null;
+        let lineConnectionsTracker = {};
+        let pendingConnection = null;
+
+        function setMode(mode) {
+            appMode = mode;
+            selectedMarkerForConnection = null;
+            document.getElementById('map').style.cursor = mode !== 'view' ? 'crosshair' : '';
+            
+            document.querySelectorAll('.editor-toolbar button').forEach(btn => {
+                if(btn.id !== 'btn-toggle-zoom' && btn.id !== 'btn-save') btn.classList.remove('active');
+            });
+            
+            if(mode !== 'view') {
+                document.getElementById('btn-' + mode).classList.add('active');
+                document.getElementById('btn-view').style.display = 'flex';
+                
+                if(mode === 'add_net') showInstruction("Click vào bản đồ hoặc điểm đã có để đặt Tủ mạng.", false);
+                if(mode === 'add_elec') showInstruction("Click vào bản đồ hoặc điểm đã có để đặt Tủ điện.", false);
+                if(mode === 'connect') showInstruction("Click vào điểm THỨ NHẤT để bắt đầu nối dây.", false);
+                if(mode === 'delete') showInstruction("Click vào Tủ hoặc Dây nối để xóa.", false);
+            } else {
+                document.getElementById('btn-view').style.display = 'none';
+                document.getElementById('action-instruction').style.display = 'none';
+            }
+        }
+        window.setMode = setMode;
+
+        function placeCabinet(latlng, name = null, isNet = null, recordState = true, existingData = null) {
+            if (name === null) {
+                isNet = appMode === 'add_net';
+                let defaultName = isNet ? "Tủ mạng" : "Tủ điện";
+                name = prompt("Nhập tên/ký hiệu thiết bị:", defaultName);
+                if (!name) return;
+            }
+
+            let iconHtml = isNet ? '🗄️' : '⚡';
+            let borderColor = isNet ? '#3b82f6' : '#eab308';
+
+            let customIcon = L.divIcon({
+                html: `<div style="font-size: 16px; background: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid ${borderColor}">${iconHtml}</div>`,
+                className: '',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            let newMarker = L.marker(latlng, {icon: customIcon}).addTo(map);
+            newMarker.bindTooltip(name, {permanent: true, direction: 'top', offset: [0, -15], className: 'custom-tooltip'});
+            newMarker.bindPopup(`<b>${name}</b><br>Toạ độ: ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`);
+            
+            newMarker.isCustomCabinet = true;
+            let cabData = existingData;
+
+            if (recordState) {
+                cabData = { name: name, isNet: isNet, lat: latlng.lat, lng: latlng.lng };
+                customState.cabinets.push(cabData);
+            }
+            newMarker.cabinetData = cabData;
+
+            attachMarkerEvents(newMarker);
+        }
+
+        map.on('click', function(e) {
+            if (appMode === 'add_net' || appMode === 'add_elec') {
+                placeCabinet(e.latlng);
+            }
+        });
+
+        function attachMarkerEvents(marker) {
+            marker.on('click', function(e) {
+                if (appMode === 'delete') {
+                    if (marker.isCustomCabinet) {
+                        map.removeLayer(marker);
+                        if (marker.cabinetData) {
+                            customState.cabinets = customState.cabinets.filter(c => c !== marker.cabinetData);
+                        }
+                    } else {
+                        showInstruction("Chỉ có thể xóa các Tủ thêm vào, không thể xóa các điểm mốc gốc.", true);
+                    }
+                    return;
+                }
+
+                if (appMode === 'add_net' || appMode === 'add_elec') {
+                    setTimeout(() => marker.closePopup(), 10);
+                    let radius = 0.00015;
+                    let angle = Math.random() * Math.PI * 2;
+                    let offsetLatlng = L.latLng(
+                        marker.getLatLng().lat + Math.sin(angle) * radius, 
+                        marker.getLatLng().lng + Math.cos(angle) * radius
+                    );
+                    placeCabinet(offsetLatlng);
+                    return;
+                }
+
+                if (appMode === 'connect') {
+                    setTimeout(() => marker.closePopup(), 10);
+
+                    if (!selectedMarkerForConnection) {
+                        selectedMarkerForConnection = marker;
+                        showInstruction("Đã chọn điểm 1. Click vào điểm THỨ HAI để hoàn thành nối dây.", false);
+                    } else {
+                        if (selectedMarkerForConnection !== marker) {
+                            pendingConnection = {
+                                marker1: selectedMarkerForConnection,
+                                marker2: marker
+                            };
+                            document.getElementById('connection-modal').style.display = 'flex';
+                        } else {
+                            selectedMarkerForConnection = null;
+                            showInstruction("Đã hủy chọn. Click vào điểm THỨ NHẤT để bắt đầu nối dây.", false);
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawConnectionLine(p1, p2, connType, recordState = true, existingData = null) {
+            let id1 = p1.lat.toFixed(6) + "_" + p1.lng.toFixed(6);
+            let id2 = p2.lat.toFixed(6) + "_" + p2.lng.toFixed(6);
+            let connKey = id1 < id2 ? id1 + "-" + id2 : id2 + "-" + id1;
+
+            if(!lineConnectionsTracker[connKey]) lineConnectionsTracker[connKey] = 0;
+            let connIndex = lineConnectionsTracker[connKey];
+            lineConnectionsTracker[connKey]++;
+
+            let lat1 = p1.lat, lng1 = p1.lng;
+            let lat2 = p2.lat, lng2 = p2.lng;
+            let latlngs = [];
+
+            if (connIndex === 0) {
+                latlngs = [[lat1, lng1], [lat2, lng2]];
+            } else {
+                let dx = lat2 - lat1;
+                let dy = lng2 - lng1;
+                let length = Math.sqrt(dx*dx + dy*dy);
+                
+                if (length > 0) {
+                    let nx = -dy / length;
+                    let ny = dx / length;
+                    let sign = connIndex % 2 === 1 ? 1 : -1;
+                    let step = Math.ceil(connIndex / 2);
+                    let offsetAmount = 0.00015 * step * sign;
+
+                    let mx = (lat1 + lat2) / 2;
+                    let my = (lng1 + lng2) / 2;
+                    let cx = mx + nx * offsetAmount * 2;
+                    let cy = my + ny * offsetAmount * 2;
+
+                    let segments = 20;
+                    for (let i = 0; i <= segments; i++) {
+                        let t = i / segments;
+                        let u = 1 - t;
+                        let px = u * u * lat1 + 2 * u * t * cx + t * t * lat2;
+                        let py = u * u * lng1 + 2 * u * t * cy + t * t * lng2;
+                        latlngs.push([px, py]);
+                    }
+                } else {
+                    latlngs = [[lat1, lng1], [lat2, lng2]];
+                }
+            }
+
+            let polyline = L.polyline(latlngs, {
+                color: connType.toLowerCase().includes('điện') ? '#eab308' : '#3b82f6', 
+                weight: 4,
+                dashArray: '5, 5'
+            }).addTo(map);
+
+            if(connType) {
+                polyline.bindTooltip(connType, {permanent: false, direction: 'center'});
+            }
+
+            let connData = existingData;
+            if (recordState) {
+                connData = {
+                    p1Lat: p1.lat, p1Lng: p1.lng, 
+                    p2Lat: p2.lat, p2Lng: p2.lng, 
+                    connType: connType
+                };
+                customState.connections.push(connData);
+            }
+
+            polyline.on('click', function(e) {
+                if (appMode === 'delete') {
+                    L.DomEvent.stopPropagation(e);
+                    map.removeLayer(polyline);
+                    if (connData) {
+                        customState.connections = customState.connections.filter(c => c !== connData);
+                    }
+                }
+            });
+        }
+
+        function confirmConnection() {
+            if (!pendingConnection) return;
+            
+            let connType = document.getElementById('conn-type-select').value;
+            let p1 = pendingConnection.marker1.getLatLng();
+            let p2 = pendingConnection.marker2.getLatLng();
+
+            document.getElementById('connection-modal').style.display = 'none';
+
+            drawConnectionLine(p1, p2, connType, true);
+            
+            selectedMarkerForConnection = null;
+            pendingConnection = null;
+            showInstruction("Nối thành công! Click vào điểm THỨ NHẤT để tiếp tục nối.", false);
+        }
+        window.confirmConnection = confirmConnection;
+
+        function cancelConnection() {
+            document.getElementById('connection-modal').style.display = 'none';
+            selectedMarkerForConnection = null;
+            pendingConnection = null;
+            showInstruction("Đã hủy nối dây. Click vào điểm THỨ NHẤT để bắt đầu nối dây.", false);
+        }
+        window.cancelConnection = cancelConnection;
+
+        // === DỮ LIỆU ĐÃ PARSE TỪ GOOGLE SHEETS ===
         const points = [
-            // CÁC TRẠM & ĐIỂM BÁN VÉ
             { lat: 20.608005, lng: 105.777449, name: "Trạm điều hành bến Yến", type: "TRAM", devices: "2 bộ máy bán vé, 1 tủ mạng", note: "Tủ mạng tổng cho 4 điểm cổng quẹt vé đò bên bến Yến" },
             { lat: 20.605131, lng: 105.775474, name: "Điểm bán vé Sao Sa", type: "TRAM", devices: "2 bộ máy bán vé, 1 tủ mạng", note: "Tủ mạng tổng cho 6 điểm cổng quẹt vé đò bên Sao Sa" },
             { lat: 20.592616, lng: 105.785731, name: "Bán vé tuyến Tuyết Sơn", type: "TRAM", devices: "Có điện, mạng, máy tính", note: "" },
             { lat: 20.593282, lng: 105.764017, name: "Bán vé tuyến Long Vân", type: "TRAM", devices: "Không có gì", note: "Dự kiến đề xuất địa điểm này" },
             
-            // CÁC ĐIỂM QUÉT CỔNG ĐÒ
             { lat: 20.609037, lng: 105.778999, name: "Cổng đò 1", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.607863, lng: 105.777486, name: "Cổng đò 2", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.607481, lng: 105.776994, name: "Cổng đò 3", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
@@ -186,13 +688,11 @@
             { lat: 20.605244, lng: 105.775420, name: "Cổng đò 9", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.604760, lng: 105.774900, name: "Cổng đò 10", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             
-            // BẾN XE
             { lat: 20.624093, lng: 105.775205, name: "Bến xe số 1", type: "BEN_XE", devices: "Không có mạng, máy tính", note: "Có điện" },
             { lat: 20.613400, lng: 105.787764, name: "Bến xe số 2", type: "BEN_XE", devices: "Không có mạng, máy tính", note: "Có điện" },
             { lat: 20.610461, lng: 105.787146, name: "Bến xe số 3", type: "BEN_XE", devices: "Ko có mạng, máy tính", note: "Có điện" },
             { lat: 20.610163, lng: 105.782976, name: "Bến xe số 4", type: "BEN_XE", devices: "Có máy POS xe điện, không có máy tính", note: "Có điện, mạng (HTX/bên xe điện đóng gói 230-270k)" },
             
-            // CHỐT XE ĐIỆN
             { lat: 20.615273, lng: 105.776968, name: "Chốt xe điện 1", type: "CHOT_XE", devices: "Ko có gì", note: "" },
             { lat: 20.610232, lng: 105.780944, name: "Chốt xe điện 2", type: "CHOT_XE", devices: "Ko có gì", note: "" },
             { lat: 20.605673, lng: 105.781615, name: "Chốt xe điện 3", type: "CHOT_XE", devices: "Ko có gì", note: "" }
@@ -202,7 +702,6 @@
         
         const latlngs = [];
         
-        // Cấu hình các Icon dựa trên màu sắc
         const createIcon = (colorUrl) => L.icon({
             iconUrl: colorUrl,
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -217,13 +716,11 @@
         const iconBenXe = createIcon('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png');
         const iconChotXe = createIcon('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png');
 
-        // Hàm kiểm tra điểm có thiết bị hay không để hiển thị icon cảnh báo
         const isNoDevice = (str) => {
             const s = str.toLowerCase();
             return s === "ko có gì" || s === "không có gì" || s.includes("không có mạng, máy tính") || s.includes("ko có mạng, máy tính") || s === "không có";
         };
 
-        // Lặp và vẽ từng điểm
         points.forEach((point) => {
             let markerIcon, tooltipClass, typeColor, typeLabel;
             
@@ -244,12 +741,10 @@
 
             const marker = L.marker([point.lat, point.lng], {icon: markerIcon}).addTo(map);
             
-            // Xác định Icon hiển thị thiết bị
             const hasDevice = !isNoDevice(point.devices);
             const deviceIcon = hasDevice ? "🖥️" : "⚠️";
             const deviceStatus = hasDevice ? point.devices : `<span style='color:#ef4444'>${point.devices}</span>`;
 
-            // Tạo nhãn (Tooltip) hiển thị thường xuyên
             const tooltipContent = `
                 <div style="text-align: center; line-height: 1.3;">
                     <div style="font-weight: bold;">${point.name}</div>
@@ -266,7 +761,6 @@
                 className: tooltipClass
             });
 
-            // Nội dung chi tiết (Popup) khi click
             const noteHtml = point.note ? `<div style="margin-top: 6px; font-size: 11px; color: #6b7280; font-style: italic;">*Ghi chú: ${point.note}</div>` : "";
             
             marker.bindPopup(`
@@ -288,10 +782,11 @@
                 </div>
             `);
             
+            attachMarkerEvents(marker);
+
             latlngs.push([point.lat, point.lng]);
         });
 
-        // Zoom bao quát tất cả các điểm trên bản đồ
         if (latlngs.length > 0) {
             const bounds = L.latLngBounds(latlngs);
             map.fitBounds(bounds, { padding: [60, 60] });
