@@ -75,6 +75,9 @@
         .tooltip-chotxe { border-color: #2563eb; color: #1d4ed8; }
         .tooltip-chotxe::before { border-top-color: #2563eb; }
 
+        .tooltip-den { border-color: #dc2626; color: #b91c1c; }
+        .tooltip-den::before { border-top-color: #dc2626; }
+
         /* Bảng chú thích (Legend) */
         .legend {
             position: absolute;
@@ -114,6 +117,7 @@
         .color-congdo { background-color: #2aad27; } /* Xanh lá */
         .color-benxe { background-color: #cb8427; } /* Cam */
         .color-chotxe { background-color: #2b82cb; } /* Xanh dương */
+        .color-den { background-color: #dc2626; } /* Đỏ */
 
         /* Công cụ vẽ thêm */
         .editor-toolbar {
@@ -293,6 +297,10 @@
         <div class="legend-item">
             <div class="legend-color color-chotxe"></div>
             <span>Chốt xe điện</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color color-den"></div>
+            <span>Đền / Di tích</span>
         </div>
     </div>
 
@@ -670,7 +678,12 @@
             { lat: 20.605131, lng: 105.775474, name: "Điểm bán vé Sao Sa", type: "TRAM", devices: "2 bộ máy bán vé, 1 tủ mạng", note: "Tủ mạng tổng cho 6 điểm cổng quẹt vé đò bên Sao Sa" },
             { lat: 20.592616, lng: 105.785731, name: "Bán vé tuyến Tuyết Sơn", type: "TRAM", devices: "Có điện, mạng, máy tính", note: "" },
             { lat: 20.593282, lng: 105.764017, name: "Bán vé tuyến Long Vân", type: "TRAM", devices: "Không có gì", note: "Dự kiến đề xuất địa điểm này" },
-            
+            { lat: 20.620515, lng: 105.749702, name: "Trạm Thu Vé Thắng Cảnh Chùa Hương", type: "TRAM", devices: "Chưa khảo sát", note: "Cổng thu vé thắng cảnh đầu tuyến" },
+
+            { lat: 20.604735, lng: 105.773492, name: "Đền Trình", type: "DEN", devices: "Chưa khảo sát", note: "" },
+            { lat: 20.601520, lng: 105.760825, name: "Chùa Thanh Sơn", type: "DEN", devices: "Chưa khảo sát", note: "" },
+            { lat: 20.603968, lng: 105.765862, name: "Cầu Hội", type: "DEN", devices: "Chưa khảo sát", note: "" },
+
             { lat: 20.609037, lng: 105.778999, name: "Cổng đò 1", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.607863, lng: 105.777486, name: "Cổng đò 2", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.607481, lng: 105.776994, name: "Cổng đò 3", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
@@ -680,7 +693,7 @@
             { lat: 20.606595, lng: 105.776887, name: "Cổng đò 7", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.606079, lng: 105.776359, name: "Cổng đò 8", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             { lat: 20.605244, lng: 105.775420, name: "Cổng đò 9", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
-            { lat: 20.604760, lng: 105.774900, name: "Cổng đò 10", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
+            { lat: 20.604761, lng: 105.774875, name: "Cổng đò 10", type: "CONG_DO", devices: "1 máy tính + máy quẹt lái đò", note: "" },
             
             { lat: 20.624093, lng: 105.775205, name: "Bến xe số 1", type: "BEN_XE", devices: "Không có mạng, máy tính", note: "Có điện" },
             { lat: 20.613400, lng: 105.787764, name: "Bến xe số 2", type: "BEN_XE", devices: "Không có mạng, máy tính", note: "Có điện" },
@@ -709,10 +722,11 @@
         const iconCongDo = createIcon('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png');
         const iconBenXe = createIcon('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png');
         const iconChotXe = createIcon('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png');
+        const iconDen = createIcon('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png');
 
         const isNoDevice = (str) => {
             const s = str.toLowerCase();
-            return s === "ko có gì" || s === "không có gì" || s.includes("không có mạng, máy tính") || s.includes("ko có mạng, máy tính") || s === "không có";
+            return s === "ko có gì" || s === "không có gì" || s.includes("không có mạng, máy tính") || s.includes("ko có mạng, máy tính") || s === "không có" || s.includes("chưa khảo sát");
         };
 
         points.forEach((point) => {
@@ -728,9 +742,12 @@
                 case "BEN_XE": 
                     markerIcon = iconBenXe; tooltipClass = 'custom-tooltip tooltip-benxe'; 
                     typeColor = '#ea580c'; typeLabel = 'Bến xe'; break;
-                case "CHOT_XE": 
-                    markerIcon = iconChotXe; tooltipClass = 'custom-tooltip tooltip-chotxe'; 
+                case "CHOT_XE":
+                    markerIcon = iconChotXe; tooltipClass = 'custom-tooltip tooltip-chotxe';
                     typeColor = '#2563eb'; typeLabel = 'Chốt xe điện'; break;
+                case "DEN":
+                    markerIcon = iconDen; tooltipClass = 'custom-tooltip tooltip-den';
+                    typeColor = '#dc2626'; typeLabel = 'Đền / Di tích'; break;
             }
 
             const marker = L.marker([point.lat, point.lng], {icon: markerIcon}).addTo(map);
